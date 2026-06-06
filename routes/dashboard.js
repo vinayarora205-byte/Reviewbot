@@ -298,6 +298,7 @@ router.post('/admin/create-client', requireAdmin, async (req, res) => {
       client_id: clientId,
       business_name,
       password,
+      bot_username: process.env.TELEGRAM_BOT_USERNAME || 'Gbp23bot',
     });
   } catch (err) {
     console.error('Create client error:', err.message);

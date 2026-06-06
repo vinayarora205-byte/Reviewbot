@@ -392,11 +392,12 @@
     try {
       const data = await api('/api/admin/create-client', { method: 'POST', body: JSON.stringify(payload) });
       const dashUrl = window.location.origin + '/';
+      const botUsername = data.bot_username || 'Gbp23bot';
       lastResult =
         '✅ Client created!\n' +
         'Client ID: ' + data.client_id + '\n' +
         'Password: ' + data.password + '\n' +
-        'Bot registration code: /start ' + data.client_id + '\n' +
+        'Employee bot link: https://t.me/' + botUsername + '?start=' + data.client_id + '\n' +
         'Dashboard URL: ' + dashUrl + '\n' +
         'Share these details with your client.';
       $('result-text').textContent = lastResult;
