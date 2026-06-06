@@ -19,6 +19,7 @@
     "express": "^5.2.1",
     "node-cron": "^4.2.1",
     "node-telegram-bot-api": "^0.67.0",
-    "twilio": "^6.0.2"
+    "twilio": "^6.0.2",
+    "ws": "^8.21.0"
   }
 }
