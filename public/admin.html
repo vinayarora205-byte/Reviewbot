@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ReviewBot Admin</title>
+<style>
+  :root {
+    --bg: #f9f8f6;
+    --surface: #ffffff;
+    --border: #e5e4e0;
+    --text: #1a1a1a;
+    --muted: #9a9992;
+    --hover: #f5f4f0;
+    --active: #f0efeb;
+    --green: #1D9E75;
+    --green-bg: #E1F5EE;
+    --green-text: #0F6E56;
+    --red: #E24B4A;
+    --red-bg: #FCEBEB;
+    --red-text: #A32D2D;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  input, button, select, textarea { font-family: inherit; }
+  .fade { animation: fadeIn 200ms ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .hidden { display: none !important; }
+
+  .brand { display: flex; align-items: center; gap: 9px; }
+  .brand .logo {
+    width: 28px; height: 28px; border-radius: 6px; background: #1a1a1a; color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; flex-shrink: 0;
+  }
+  .brand .name { font-size: 18px; font-weight: 500; }
+
+  .field { margin-top: 16px; }
+  .field label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+  input[type="text"], input[type="password"], input[type="url"], select, textarea {
+    width: 100%; height: 40px; border: 0.5px solid var(--border); border-radius: 8px;
+    padding: 0 12px; font-size: 14px; color: var(--text); background: var(--surface);
+    outline: none; transition: border-color 120ms ease;
+  }
+  textarea { height: auto; min-height: 90px; padding: 10px 12px; line-height: 1.5; resize: vertical; }
+  input:focus, select:focus, textarea:focus { border-color: #aaa9a3; }
+  input::placeholder, textarea::placeholder { color: var(--muted); }
+  select {
+    -webkit-appearance: none; appearance: none; cursor: pointer; padding-right: 34px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239a9992' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center;
+  }
+
+  .btn-primary {
+    height: 40px; background: #1a1a1a; color: #fff; border: none; border-radius: 8px;
+    font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 120ms ease; padding: 0 24px;
+  }
+  .btn-primary.full { width: 100%; }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-primary:disabled { opacity: 0.5; cursor: default; }
+  .btn-secondary {
+    background: var(--surface); color: var(--text); border: 0.5px solid var(--border);
+    border-radius: 8px; font-size: 13px; font-weight: 500; padding: 7px 14px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; transition: background 120ms ease;
+  }
+  .btn-secondary:hover { background: var(--hover); }
+  .btn-danger {
+    background: var(--red-bg); color: var(--red-text); border: 0.5px solid #f3cccc;
+    border-radius: 6px; font-size: 12px; font-weight: 500; padding: 4px 10px; cursor: pointer;
+  }
+  .btn-danger:hover { background: #f8dada; }
+
+  /* ===== LOGIN ===== */
+  #login { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .login-card {
+    width: 100%; max-width: 400px; background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: 16px; padding: 36px;
+  }
+  .login-card h1 { font-size: 24px; font-weight: 500; margin-top: 28px; }
+  .login-card .sub { font-size: 14px; color: var(--muted); margin-top: 6px; }
+  #login .btn-primary { margin-top: 24px; }
+  .error-msg {
+    margin-top: 14px; font-size: 13px; color: var(--red-text); background: var(--red-bg);
+    border-radius: 8px; padding: 9px 12px;
+  }
+  .login-footer { margin-top: 24px; text-align: center; font-size: 12px; color: var(--muted); }
+
+  /* ===== DASHBOARD ===== */
+  #dashboard { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 220px; flex-shrink: 0; background: var(--surface); border-right: 0.5px solid var(--border);
+    height: 100vh; position: sticky; top: 0; display: flex; flex-direction: column; padding: 20px 14px;
+  }
+  .sidebar .brand { padding: 0 6px 8px; }
+  .nav { margin-top: 22px; display: flex; flex-direction: column; gap: 2px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px;
+    font-size: 14px; color: #4a4a47; cursor: pointer; border: none; background: none; width: 100%;
+    text-align: left; transition: background 120ms ease;
+  }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--muted); }
+  .nav-item:hover { background: var(--hover); }
+  .nav-item.active { background: var(--active); color: var(--text); font-weight: 500; }
+  .nav-item.active svg { color: var(--text); }
+  .sidebar-bottom { margin-top: auto; }
+  .signout {
+    display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px;
+    font-size: 14px; color: #4a4a47; cursor: pointer; border: none; background: none; width: 100%;
+    text-align: left; transition: background 120ms ease; border-top: 0.5px solid var(--border); margin-top: 8px;
+  }
+  .signout svg { width: 16px; height: 16px; color: var(--muted); }
+  .signout:hover { background: var(--hover); }
+
+  .main { flex: 1; padding: 32px; background: var(--bg); min-width: 0; }
+  .page-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+  .page-title { font-size: 20px; font-weight: 500; }
+
+  .card {
+    background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px;
+    padding: 20px 22px; max-width: 620px;
+  }
+  .card-title { font-size: 14px; font-weight: 500; }
+  .card-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .result-box {
+    margin-top: 18px; max-width: 620px; background: var(--green-bg); border: 0.5px solid #9FE1CB;
+    border-radius: 10px; padding: 16px 18px; color: var(--green-text);
+  }
+  .result-box pre {
+    font-family: inherit; font-size: 13px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; margin: 0;
+  }
+  .result-actions { margin-top: 12px; }
+
+  .table-wrap { background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--muted); padding: 10px 18px; border-bottom: 0.5px solid var(--border);
+  }
+  td { font-size: 13px; padding: 12px 18px; border-bottom: 0.5px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--hover); }
+  .empty-row td { text-align: center; color: var(--muted); padding: 40px 18px; }
+  .mono { font-variant-numeric: tabular-nums; }
+
+  .save-msg { font-size: 13px; font-weight: 500; margin-left: 14px; }
+  .save-msg.ok { color: var(--green-text); }
+  .save-msg.err { color: var(--red-text); }
+</style>
+</head>
+<body>
+
+<!-- ===== ADMIN LOGIN ===== -->
+<div id="login" class="fade">
+  <div class="login-card">
+    <div class="brand">
+      <div class="logo">A</div>
+      <span class="name">ReviewBot Admin</span>
+    </div>
+    <h1>Admin sign in</h1>
+    <p class="sub">Enter the admin password to manage clients</p>
+
+    <form id="login-form" autocomplete="off">
+      <div class="field">
+        <label for="admin-password">Admin password</label>
+        <input type="password" id="admin-password" placeholder="Enter admin password" autocomplete="off" />
+      </div>
+      <button type="submit" class="btn-primary full" id="login-btn">Sign in</button>
+      <div class="error-msg hidden" id="login-error">Invalid admin password</div>
+    </form>
+
+    <p class="login-footer">Restricted area — administrators only</p>
+  </div>
+</div>
+
+<!-- ===== ADMIN DASHBOARD ===== -->
+<div id="dashboard" class="hidden">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">A</div>
+      <span class="name">ReviewBot Admin</span>
+    </div>
+    <nav class="nav">
+      <button class="nav-item active" data-section="add">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add New Client
+      </button>
+      <button class="nav-item" data-section="clients">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        All Clients
+      </button>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="signout" id="signout-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign out
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- Add New Client -->
+    <section id="section-add" class="section fade">
+      <div class="page-head"><div class="page-title">Add New Client</div></div>
+
+      <div class="card">
+        <div class="field">
+          <label for="f-business">Business Name <span style="color:var(--red)">*</span></label>
+          <input type="text" id="f-business" placeholder="Acme Plumbing" />
+        </div>
+        <div class="field">
+          <label for="f-password">Client Password <span style="color:var(--red)">*</span></label>
+          <input type="text" id="f-password" placeholder="Set a dashboard password" />
+        </div>
+        <div class="field">
+          <label for="f-template">SMS Template <span style="color:var(--muted)">(optional)</span></label>
+          <textarea id="f-template" placeholder="Leave blank to use the default template"></textarea>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="f-delay">Delay Hours</label>
+            <select id="f-delay">
+              <option value="1">1 hour</option>
+              <option value="2" selected>2 hours</option>
+              <option value="4">4 hours</option>
+              <option value="8">8 hours</option>
+              <option value="24">24 hours</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f-maps">Google Maps URL <span style="color:var(--muted)">(optional)</span></label>
+            <input type="url" id="f-maps" placeholder="https://maps.app.goo.gl/..." />
+          </div>
+        </div>
+        <div class="field">
+          <button class="btn-primary" id="create-btn">Create Client</button>
+          <span class="save-msg hidden" id="create-msg"></span>
+        </div>
+      </div>
+
+      <div class="result-box hidden" id="result-box">
+        <pre id="result-text"></pre>
+        <div class="result-actions">
+          <button class="btn-secondary" id="copy-btn">Copy All</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- All Clients -->
+    <section id="section-clients" class="section hidden">
+      <div class="page-head">
+        <div class="page-title">All Clients</div>
+        <button class="btn-secondary" id="refresh-btn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Refresh
+        </button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Client ID</th><th>Business Name</th><th>Delay Hours</th><th>Created At</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="clients-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+(function () {
+  let adminToken = null;
+  let lastResult = '';
+
+  const $ = (id) => document.getElementById(id);
+  const loginScreen = $('login');
+  const dashboard = $('dashboard');
+
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    if (isNaN(d)) return '—';
+    return d.toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+  function escapeHtml(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  async function api(path, options) {
+    options = options || {};
+    const headers = Object.assign({ 'Content-Type': 'application/json' }, options.headers || {});
+    if (adminToken) headers['Authorization'] = 'Bearer ' + adminToken;
+    const res = await fetch(path, Object.assign({}, options, { headers: headers }));
+    let json = null;
+    try { json = await res.json(); } catch (e) {}
+    if (!res.ok) {
+      const msg = (json && (json.message || json.error)) || ('Request failed (' + res.status + ')');
+      const err = new Error(msg); err.status = res.status; throw err;
+    }
+    return json;
+  }
+
+  // ===== Login =====
+  $('login-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const errBox = $('login-error');
+    errBox.classList.add('hidden');
+    const password = $('admin-password').value;
+    const btn = $('login-btn');
+    if (!password) { errBox.textContent = 'Please enter the admin password'; errBox.classList.remove('hidden'); return; }
+
+    btn.disabled = true; btn.textContent = 'Signing in…';
+    try {
+      const data = await api('/api/admin/login', { method: 'POST', body: JSON.stringify({ password: password }) });
+      adminToken = data.token;
+      enterDashboard();
+    } catch (err) {
+      errBox.textContent = 'Invalid admin password';
+      errBox.classList.remove('hidden');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Sign in';
+    }
+  });
+
+  function enterDashboard() {
+    loginScreen.classList.add('hidden');
+    dashboard.classList.remove('hidden');
+    dashboard.classList.remove('fade'); void dashboard.offsetWidth; dashboard.classList.add('fade');
+    showSection('add');
+    loadClients();
+  }
+
+  function signOut() {
+    if (adminToken) api('/api/admin/logout', { method: 'POST' }).catch(function () {});
+    adminToken = null;
+    $('admin-password').value = '';
+    dashboard.classList.add('hidden');
+    loginScreen.classList.remove('hidden');
+    loginScreen.classList.remove('fade'); void loginScreen.offsetWidth; loginScreen.classList.add('fade');
+  }
+  $('signout-btn').addEventListener('click', signOut);
+
+  // ===== Section switching =====
+  document.querySelectorAll('.nav-item').forEach(function (btn) {
+    btn.addEventListener('click', function () { showSection(btn.dataset.section); });
+  });
+  function showSection(name) {
+    document.querySelectorAll('.nav-item').forEach(function (b) {
+      b.classList.toggle('active', b.dataset.section === name);
+    });
+    ['add', 'clients'].forEach(function (s) {
+      const el = $('section-' + s);
+      if (s === name) {
+        el.classList.remove('hidden');
+        el.classList.remove('fade'); void el.offsetWidth; el.classList.add('fade');
+      } else { el.classList.add('hidden'); }
+    });
+    if (name === 'clients') loadClients();
+  }
+
+  // ===== Create client =====
+  $('create-btn').addEventListener('click', async function () {
+    const msg = $('create-msg');
+    msg.classList.add('hidden');
+    const business_name = $('f-business').value.trim();
+    const password = $('f-password').value.trim();
+
+    if (!business_name || !password) {
+      msg.textContent = 'Business name and password are required';
+      msg.className = 'save-msg err';
+      msg.classList.remove('hidden');
+      return;
+    }
+
+    const payload = {
+      business_name: business_name,
+      password: password,
+      sms_template: $('f-template').value,
+      delay_hours: parseInt($('f-delay').value, 10),
+      google_maps_url: $('f-maps').value.trim(),
+    };
+
+    const btn = this;
+    btn.disabled = true;
+    try {
+      const data = await api('/api/admin/create-client', { method: 'POST', body: JSON.stringify(payload) });
+      const dashUrl = window.location.origin + '/';
+      lastResult =
+        '✅ Client created!\n' +
+        'Client ID: ' + data.client_id + '\n' +
+        'Password: ' + data.password + '\n' +
+        'Bot registration code: /start ' + data.client_id + '\n' +
+        'Dashboard URL: ' + dashUrl + '\n' +
+        'Share these details with your client.';
+      $('result-text').textContent = lastResult;
+      $('result-box').classList.remove('hidden');
+
+      // reset form
+      $('f-business').value = '';
+      $('f-password').value = '';
+      $('f-template').value = '';
+      $('f-delay').value = '2';
+      $('f-maps').value = '';
+      loadClients();
+    } catch (err) {
+      msg.textContent = 'Could not create client: ' + err.message;
+      msg.className = 'save-msg err';
+      msg.classList.remove('hidden');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $('copy-btn').addEventListener('click', function () {
+    const btn = this;
+    const done = function () { btn.textContent = 'Copied!'; setTimeout(function () { btn.textContent = 'Copy All'; }, 2000); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(lastResult).then(done, function () { fallbackCopy(lastResult); done(); });
+    } else { fallbackCopy(lastResult); done(); }
+  });
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  // ===== Clients table =====
+  async function loadClients() {
+    const tbody = $('clients-tbody');
+    try {
+      const clients = await api('/api/admin/clients');
+      if (!clients.length) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No clients yet</td></tr>';
+        return;
+      }
+      tbody.innerHTML = clients.map(function (c) {
+        return '<tr>' +
+          '<td class="mono">' + escapeHtml(c.id) + '</td>' +
+          '<td>' + escapeHtml(c.business_name) + '</td>' +
+          '<td>' + escapeHtml(c.delay_hours) + '</td>' +
+          '<td>' + fmtDate(c.created_at) + '</td>' +
+          '<td><button class="btn-danger" data-id="' + escapeHtml(c.id) + '">Delete</button></td>' +
+        '</tr>';
+      }).join('');
+
+      tbody.querySelectorAll('.btn-danger').forEach(function (b) {
+        b.addEventListener('click', function () { deleteClient(b.dataset.id); });
+      });
+    } catch (err) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Could not load clients: ' + escapeHtml(err.message) + '</td></tr>';
+    }
+  }
+
+  async function deleteClient(id) {
+    if (!confirm('Delete client ' + id + '? This also removes its employees and SMS jobs. This cannot be undone.')) return;
+    try {
+      await api('/api/admin/delete-client/' + encodeURIComponent(id), { method: 'DELETE' });
+      loadClients();
+    } catch (err) {
+      alert('Could not delete client: ' + err.message);
+    }
+  }
+
+  $('refresh-btn').addEventListener('click', loadClients);
+})();
+</script>
+</body>
+</html>

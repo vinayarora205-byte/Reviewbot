@@ -20,6 +20,11 @@ app.use(express.json());
 // Serve the client dashboard (public/index.html) at /
 app.use(express.static('public'));
 
+// Clean URL for the admin panel (/admin -> public/admin.html)
+app.get('/admin', (req, res) => {
+  res.sendFile(require('path').join(__dirname, 'public', 'admin.html'));
+});
+
 // Dashboard API routes
 app.use('/api', require('./routes/dashboard'));
 
