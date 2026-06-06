@@ -1,0 +1,4 @@
+node_modules
+.env
+server_out.log
+smoke-test.js

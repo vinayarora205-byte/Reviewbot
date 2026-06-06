@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ReviewBot — Dashboard</title>
+<style>
+  :root {
+    --bg: #f9f8f6;
+    --surface: #ffffff;
+    --border: #e5e4e0;
+    --text: #1a1a1a;
+    --muted: #9a9992;
+    --hover: #f5f4f0;
+    --active: #f0efeb;
+
+    --green: #1D9E75;
+    --green-bg: #E1F5EE;
+    --green-text: #0F6E56;
+    --amber: #BA7517;
+    --amber-bg: #FAEEDA;
+    --amber-text: #854F0B;
+    --red: #E24B4A;
+    --red-bg: #FCEBEB;
+    --red-text: #A32D2D;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  input, button, select, textarea { font-family: inherit; }
+
+  /* ---------- Fade transition ---------- */
+  .fade { animation: fadeIn 200ms ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .hidden { display: none !important; }
+
+  /* ---------- Brand / logo ---------- */
+  .brand { display: flex; align-items: center; gap: 9px; }
+  .brand .logo {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: #1a1a1a;
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 600;
+    flex-shrink: 0;
+  }
+  .brand .name { font-size: 18px; font-weight: 500; }
+
+  /* ---------- Inputs ---------- */
+  .field { margin-top: 16px; }
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+  input[type="text"], input[type="password"], input[type="url"], select, textarea {
+    width: 100%;
+    height: 40px;
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--surface);
+    outline: none;
+    transition: border-color 120ms ease;
+  }
+  textarea {
+    height: auto;
+    min-height: 100px;
+    padding: 10px 12px;
+    line-height: 1.5;
+    resize: vertical;
+  }
+  input:focus, select:focus, textarea:focus { border-color: #aaa9a3; }
+  input::placeholder, textarea::placeholder { color: var(--muted); }
+  select { -webkit-appearance: none; appearance: none; cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239a9992' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center; padding-right: 34px;
+  }
+
+  /* ---------- Buttons ---------- */
+  .btn-primary {
+    width: 100%;
+    height: 40px;
+    background: #1a1a1a;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 120ms ease;
+  }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-primary:disabled { opacity: 0.5; cursor: default; }
+
+  .btn-inline {
+    width: auto;
+    padding: 9px 24px;
+    height: auto;
+  }
+
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 120ms ease;
+  }
+  .btn-secondary:hover { background: var(--hover); }
+
+  /* ================= LOGIN ================= */
+  #login {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .login-card {
+    width: 100%;
+    max-width: 400px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 16px;
+    padding: 36px;
+  }
+  .login-card h1 { font-size: 24px; font-weight: 500; margin-top: 28px; }
+  .login-card .sub { font-size: 14px; color: var(--muted); margin-top: 6px; }
+
+  .pw-wrap { position: relative; }
+  .pw-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    padding: 4px;
+  }
+  .pw-toggle:hover { color: var(--text); }
+
+  #login .btn-primary { margin-top: 24px; }
+
+  .error-msg {
+    margin-top: 14px;
+    font-size: 13px;
+    color: var(--red-text);
+    background: var(--red-bg);
+    border-radius: 8px;
+    padding: 9px 12px;
+  }
+
+  .login-footer {
+    margin-top: 24px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* ================= DASHBOARD ================= */
+  #dashboard { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 0.5px solid var(--border);
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 14px;
+  }
+  .sidebar .brand { padding: 0 6px 8px; }
+
+  .nav { margin-top: 22px; display: flex; flex-direction: column; gap: 2px; }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #4a4a47;
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    transition: background 120ms ease;
+  }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--muted); }
+  .nav-item:hover { background: var(--hover); }
+  .nav-item.active { background: var(--active); color: var(--text); font-weight: 500; }
+  .nav-item.active svg { color: var(--text); }
+
+  .sidebar-bottom { margin-top: auto; }
+  .biz-info {
+    padding: 10px 8px;
+    border-top: 0.5px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .biz-info .biz-name { font-size: 13px; font-weight: 500; }
+  .biz-info .biz-id { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .signout {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #4a4a47;
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    transition: background 120ms ease;
+  }
+  .signout svg { width: 16px; height: 16px; color: var(--muted); }
+  .signout:hover { background: var(--hover); }
+
+  .main {
+    flex: 1;
+    padding: 32px;
+    background: var(--bg);
+    min-width: 0;
+  }
+
+  .page-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .page-title { font-size: 20px; font-weight: 500; }
+
+  .pill {
+    background: var(--active);
+    border-radius: 999px;
+    padding: 5px 14px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  /* ---------- Stat cards ---------- */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .stat-card .stat-label { font-size: 12px; color: var(--muted); }
+  .stat-card .stat-value { font-size: 24px; font-weight: 500; margin-top: 8px; }
+  .stat-value.green { color: var(--green); }
+  .stat-value.amber { color: var(--amber); }
+  .stat-value.red { color: var(--red); }
+
+  /* ---------- Table ---------- */
+  .table-wrap {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .table-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .table-head .t-title { font-size: 14px; font-weight: 500; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    padding: 10px 18px;
+    border-bottom: 0.5px solid var(--border);
+  }
+  td {
+    font-size: 13px;
+    padding: 12px 18px;
+    border-bottom: 0.5px solid var(--border);
+    color: var(--text);
+  }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--hover); }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .badge.sent { background: var(--green-bg); color: var(--green-text); }
+  .badge.pending { background: var(--amber-bg); color: var(--amber-text); }
+  .badge.failed { background: var(--red-bg); color: var(--red-text); }
+
+  .empty-row td {
+    text-align: center;
+    color: var(--muted);
+    padding: 40px 18px;
+    font-size: 13px;
+  }
+
+  /* ---------- SMS Settings ---------- */
+  .settings-grid {
+    display: grid;
+    grid-template-columns: 60% 40%;
+    gap: 18px;
+    align-items: start;
+  }
+  .card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px;
+  }
+  .card + .card { margin-top: 16px; }
+  .card-title { font-size: 14px; font-weight: 500; }
+  .card-sub { font-size: 12px; color: var(--muted); margin-top: 3px; margin-bottom: 14px; }
+
+  .hint-box {
+    background: var(--hover);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: #6a6a66;
+    margin-top: 10px;
+    line-height: 1.7;
+  }
+  .hint-box code {
+    background: #ebeae6;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: var(--text);
+  }
+
+  .preview-label {
+    text-transform: uppercase;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--green);
+    margin-top: 18px;
+    margin-bottom: 8px;
+  }
+  .preview-box {
+    background: #f0f9f5;
+    border: 0.5px solid #9FE1CB;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 13px;
+    color: #085041;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .link-btn {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .link-btn:hover { color: var(--text); text-decoration: underline; }
+
+  .settings-actions {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .save-success {
+    font-size: 13px;
+    color: var(--green-text);
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN SCREEN ============ -->
+<div id="login" class="fade">
+  <div class="login-card">
+    <div class="brand">
+      <div class="logo">R</div>
+      <span class="name">ReviewBot</span>
+    </div>
+
+    <h1>Welcome back</h1>
+    <p class="sub">Sign in to manage your review automation</p>
+
+    <form id="login-form" autocomplete="off">
+      <div class="field">
+        <label for="client_id">Client ID</label>
+        <input type="text" id="client_id" placeholder="CA-0000" autocomplete="off" />
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="password" placeholder="Enter your password" autocomplete="off" />
+          <button type="button" class="pw-toggle" id="pw-toggle" aria-label="Show password">
+            <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary" id="login-btn">Sign in</button>
+
+      <div class="error-msg hidden" id="login-error">Invalid Client ID or password</div>
+    </form>
+
+    <p class="login-footer">Need help? Contact your ReviewBot administrator</p>
+  </div>
+</div>
+
+<!-- ============ DASHBOARD SCREEN ============ -->
+<div id="dashboard" class="hidden">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">R</div>
+      <span class="name">ReviewBot</span>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item active" data-section="overview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Overview
+      </button>
+      <button class="nav-item" data-section="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        SMS Settings
+      </button>
+      <button class="nav-item" data-section="history">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Job History
+      </button>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="biz-info">
+        <div class="biz-name" id="side-biz-name">—</div>
+        <div class="biz-id" id="side-biz-id">—</div>
+      </div>
+      <button class="signout" id="signout-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign out
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- OVERVIEW -->
+    <section id="section-overview" class="section fade">
+      <div class="page-head">
+        <div class="page-title">Overview</div>
+        <div class="pill" id="overview-biz-badge">—</div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Sent</div>
+          <div class="stat-value green" id="stat-sent">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pending</div>
+          <div class="stat-value amber" id="stat-pending">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Failed</div>
+          <div class="stat-value red" id="stat-failed">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">This Month</div>
+          <div class="stat-value" id="stat-month">0</div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-head">
+          <div class="t-title">Recent Jobs</div>
+          <button class="btn-secondary" id="refresh-overview">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Refresh
+          </button>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Customer</th><th>Phone</th><th>Status</th><th>Scheduled time</th></tr>
+          </thead>
+          <tbody id="overview-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SMS SETTINGS -->
+    <section id="section-settings" class="section hidden">
+      <div class="page-head">
+        <div class="page-title">SMS Settings</div>
+      </div>
+
+      <div class="settings-grid">
+        <!-- Left -->
+        <div class="card">
+          <div class="card-title">Message template</div>
+          <div class="card-sub">Customize what your customers receive</div>
+          <textarea id="tpl-input" placeholder="Type your message..."></textarea>
+
+          <div class="hint-box">
+            <code>{{name}}</code> = customer name &nbsp;·&nbsp;
+            <code>{{business}}</code> = your business name &nbsp;·&nbsp;
+            <code>{{maps_link}}</code> = your review link
+          </div>
+
+          <div class="preview-label">Preview</div>
+          <div class="preview-box" id="tpl-preview"></div>
+        </div>
+
+        <!-- Right -->
+        <div>
+          <div class="card">
+            <div class="card-title">Send delay</div>
+            <div class="card-sub">When to text the customer after a job</div>
+            <select id="delay-input">
+              <option value="1">1 hour</option>
+              <option value="2">2 hours</option>
+              <option value="4">4 hours</option>
+              <option value="8">8 hours</option>
+              <option value="24">24 hours</option>
+            </select>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Google Maps link</div>
+            <div class="card-sub">Where customers leave their review</div>
+            <input type="url" id="maps-input" placeholder="https://maps.app.goo.gl/..." />
+            <a class="link-btn" id="test-link">Test this link ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-actions">
+        <button class="btn-primary btn-inline" id="save-settings">Save settings</button>
+        <span class="save-success hidden" id="save-success">Settings saved successfully</span>
+      </div>
+    </section>
+
+    <!-- JOB HISTORY -->
+    <section id="section-history" class="section hidden">
+      <div class="page-head">
+        <div class="page-title">Job History</div>
+        <button class="btn-secondary" id="refresh-history">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Refresh
+        </button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Customer name</th><th>Phone</th><th>Status</th><th>Scheduled time</th><th>Sent time</th></tr>
+          </thead>
+          <tbody id="history-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function () {
+  // -------- State --------
+  let client = null;          // { id, business_name, sms_template, delay_hours, google_maps_url }
+  let authToken = null;       // session token issued at login
+  let jobsCache = [];
+
+  // -------- Element refs --------
+  const $ = (id) => document.getElementById(id);
+  const loginScreen = $('login');
+  const dashboard = $('dashboard');
+
+  // ===================================================================
+  // Helpers
+  // ===================================================================
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    if (isNaN(d)) return '—';
+    return d.toLocaleString(undefined, {
+      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+  function escapeHtml(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function badge(status) {
+    const s = (status || 'pending').toLowerCase();
+    const cls = s === 'sent' ? 'sent' : s === 'failed' ? 'failed' : 'pending';
+    const label = s.charAt(0).toUpperCase() + s.slice(1);
+    return '<span class="badge ' + cls + '">' + label + '</span>';
+  }
+
+  async function api(path, options) {
+    options = options || {};
+    const headers = Object.assign({ 'Content-Type': 'application/json' }, options.headers || {});
+    if (authToken) headers['Authorization'] = 'Bearer ' + authToken;
+    const res = await fetch(path, Object.assign({}, options, { headers: headers }));
+    if (!res.ok) {
+      let msg = 'Request failed (' + res.status + ')';
+      try { const j = await res.json(); if (j && j.error) msg = j.error; } catch (e) {}
+      throw new Error(msg);
+    }
+    return res.json();
+  }
+
+  // ===================================================================
+  // Login
+  // ===================================================================
+  $('pw-toggle').addEventListener('click', function () {
+    const input = $('password');
+    const eye = $('eye-icon');
+    if (input.type === 'password') {
+      input.type = 'text';
+      eye.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+    } else {
+      input.type = 'password';
+      eye.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    }
+  });
+
+  $('login-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const errBox = $('login-error');
+    errBox.classList.add('hidden');
+
+    const clientId = $('client_id').value.trim();
+    const password = $('password').value;
+    const btn = $('login-btn');
+
+    if (!clientId || !password) {
+      errBox.textContent = 'Please enter your Client ID and password';
+      errBox.classList.remove('hidden');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Signing in…';
+    try {
+      const data = await api('/api/login', {
+        method: 'POST',
+        body: JSON.stringify({ client_id: clientId, password: password })
+      });
+      // Expecting the client object back (directly or under .client)
+      client = data.client || data;
+      authToken = data.token || null;
+      enterDashboard();
+    } catch (err) {
+      errBox.textContent = 'Invalid Client ID or password';
+      errBox.classList.remove('hidden');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Sign in';
+    }
+  });
+
+  // ===================================================================
+  // Dashboard entry / exit
+  // ===================================================================
+  function enterDashboard() {
+    loginScreen.classList.add('hidden');
+    dashboard.classList.remove('hidden');
+    dashboard.classList.remove('fade'); void dashboard.offsetWidth; dashboard.classList.add('fade');
+
+    // Sidebar / badges
+    $('side-biz-name').textContent = client.business_name || '—';
+    $('side-biz-id').textContent = client.id || '—';
+    $('overview-biz-badge').textContent = client.business_name || '—';
+
+    // Pre-fill settings
+    $('tpl-input').value = client.sms_template || '';
+    $('maps-input').value = client.google_maps_url || '';
+    if (client.delay_hours != null) $('delay-input').value = String(client.delay_hours);
+    updatePreview();
+
+    showSection('overview');
+    loadStats();
+    loadJobs();
+  }
+
+  function signOut() {
+    // best-effort server-side token invalidation
+    if (authToken) {
+      api('/api/logout', { method: 'POST' }).catch(function () {});
+    }
+    client = null;
+    authToken = null;
+    jobsCache = [];
+    $('client_id').value = '';
+    $('password').value = '';
+    dashboard.classList.add('hidden');
+    loginScreen.classList.remove('hidden');
+    loginScreen.classList.remove('fade'); void loginScreen.offsetWidth; loginScreen.classList.add('fade');
+  }
+  $('signout-btn').addEventListener('click', signOut);
+
+  // ===================================================================
+  // Section switching
+  // ===================================================================
+  document.querySelectorAll('.nav-item').forEach(function (btn) {
+    btn.addEventListener('click', function () { showSection(btn.dataset.section); });
+  });
+
+  function showSection(name) {
+    document.querySelectorAll('.nav-item').forEach(function (b) {
+      b.classList.toggle('active', b.dataset.section === name);
+    });
+    ['overview', 'settings', 'history'].forEach(function (s) {
+      const el = $('section-' + s);
+      if (s === name) {
+        el.classList.remove('hidden');
+        el.classList.remove('fade'); void el.offsetWidth; el.classList.add('fade');
+      } else {
+        el.classList.add('hidden');
+      }
+    });
+  }
+
+  // ===================================================================
+  // Data loading
+  // ===================================================================
+  async function loadStats() {
+    if (!client) return;
+    try {
+      const s = await api('/api/stats/' + encodeURIComponent(client.id));
+      $('stat-sent').textContent = s.sent != null ? s.sent : (s.total_sent || 0);
+      $('stat-pending').textContent = s.pending || 0;
+      $('stat-failed').textContent = s.failed || 0;
+      $('stat-month').textContent = s.this_month != null ? s.this_month : (s.month || 0);
+    } catch (err) {
+      console.error('Stats error:', err.message);
+    }
+  }
+
+  async function loadJobs() {
+    if (!client) return;
+    try {
+      const data = await api('/api/jobs/' + encodeURIComponent(client.id));
+      jobsCache = Array.isArray(data) ? data : (data.jobs || []);
+      renderOverviewTable();
+      renderHistoryTable();
+    } catch (err) {
+      console.error('Jobs error:', err.message);
+      jobsCache = [];
+      renderOverviewTable();
+      renderHistoryTable();
+    }
+  }
+
+  function renderOverviewTable() {
+    const tbody = $('overview-tbody');
+    const rows = jobsCache.slice(0, 10);
+    if (!rows.length) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="4">No jobs yet</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(function (j) {
+      return '<tr>' +
+        '<td>' + escapeHtml(j.customer_name) + '</td>' +
+        '<td>' + escapeHtml(j.customer_phone) + '</td>' +
+        '<td>' + badge(j.status) + '</td>' +
+        '<td>' + fmtDate(j.send_at) + '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  function renderHistoryTable() {
+    const tbody = $('history-tbody');
+    if (!jobsCache.length) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No jobs yet</td></tr>';
+      return;
+    }
+    tbody.innerHTML = jobsCache.map(function (j) {
+      return '<tr>' +
+        '<td>' + escapeHtml(j.customer_name) + '</td>' +
+        '<td>' + escapeHtml(j.customer_phone) + '</td>' +
+        '<td>' + badge(j.status) + '</td>' +
+        '<td>' + fmtDate(j.send_at) + '</td>' +
+        '<td>' + fmtDate(j.sent_at) + '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  $('refresh-overview').addEventListener('click', function () { loadStats(); loadJobs(); });
+  $('refresh-history').addEventListener('click', loadJobs);
+
+  // ===================================================================
+  // SMS Settings
+  // ===================================================================
+  function updatePreview() {
+    const tpl = $('tpl-input').value || '';
+    const out = tpl
+      .replace(/\{\{name\}\}/g, 'Rahul')
+      .replace(/\{\{business\}\}/g, (client && client.business_name) || 'Your Business')
+      .replace(/\{\{maps_link\}\}/g, (client && client.google_maps_url) || 'https://maps.app.goo.gl/...');
+    $('tpl-preview').textContent = out;
+  }
+  $('tpl-input').addEventListener('input', updatePreview);
+  // keep maps_link in the preview fresh while editing the URL
+  $('maps-input').addEventListener('input', updatePreview);
+
+  $('test-link').addEventListener('click', function () {
+    const url = $('maps-input').value.trim();
+    if (url) window.open(url, '_blank', 'noopener');
+  });
+
+  $('save-settings').addEventListener('click', async function () {
+    if (!client) return;
+    const btn = this;
+    const payload = {
+      sms_template: $('tpl-input').value,
+      delay_hours: parseInt($('delay-input').value, 10),
+      google_maps_url: $('maps-input').value.trim()
+    };
+    btn.disabled = true;
+    try {
+      await api('/api/settings/' + encodeURIComponent(client.id), {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      // reflect saved values locally
+      client.sms_template = payload.sms_template;
+      client.delay_hours = payload.delay_hours;
+      client.google_maps_url = payload.google_maps_url;
+      updatePreview();
+
+      const msg = $('save-success');
+      msg.classList.remove('hidden');
+      setTimeout(function () { msg.classList.add('hidden'); }, 3000);
+    } catch (err) {
+      const msg = $('save-success');
+      msg.textContent = 'Could not save: ' + err.message;
+      msg.style.color = 'var(--red-text)';
+      msg.classList.remove('hidden');
+      setTimeout(function () {
+        msg.classList.add('hidden');
+        msg.textContent = 'Settings saved successfully';
+        msg.style.color = '';
+      }, 3000);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+})();
+</script>
+</body>
+</html>
